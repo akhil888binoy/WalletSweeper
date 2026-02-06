@@ -161,7 +161,7 @@ async fn process_single_request(
 
                 let call = erc20.transfer(master_wallet_address, U256::from(1));
 
-                let usdc_transfer_gas = call.from(wallet_address)
+                let usdc_transfer_gas = call
                     .estimate_gas()
                     .await.map_err(|e|{
                     eprintln!("Error Cannot estimate gas {:?}: {:?}", wallet_address, e);
@@ -214,7 +214,7 @@ async fn process_single_request(
 
                 let call = erc20.transfer(master_wallet_address, U256::from(1));
 
-                let usdt_transfer_gas = call.from(wallet_address)
+                let usdt_transfer_gas = call
                     .estimate_gas()
                     .await.map_err(|e|{
                     eprintln!("Error Cannot estimate gas {:?}: {:?}", wallet_address, e);
