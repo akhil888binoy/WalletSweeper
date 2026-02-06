@@ -199,13 +199,10 @@ async fn process_single_request(
                                 &tx_hash.to_string(),
                             ).await?;
                         }else{
-                                eprintln!("No Mininum gas Gas: {} Minimum Gas :{} Chain:{} Wallet:{} || Making Wallet FREE", gas_balance, minimum_gas, chain_name, wallet_address);
-                                mark_wallet_free(&txn, pending_wallet.clone()).await?;
-                                txn.commit().await.map_err(AppError::DbError)?;
-                                return Ok(());
+                            eprintln!("No Mininum gas Gas: {} Minimum Gas :{} Chain:{} Wallet:{} ", gas_balance, minimum_gas, chain_name, wallet_address);
                         }
                 }else{
-                    println!("No token Balance {} Token :{} Chain:{} Wallet:{} || Making Wallet FREE", usdc_token_balance, token_name, chain_name, wallet_address);
+                    println!("No token Balance {} Token :{} Chain:{} Wallet:{} ", usdc_token_balance, token_name, chain_name, wallet_address);
                 }
 
             }else {
@@ -259,13 +256,10 @@ async fn process_single_request(
                         )
                         .await?;
                     }else{
-                        eprintln!("No Mininum gas Gas : {} Minimum Gas :{} Chain:{} Wallet:{} || Making Wallet FREE", gas_balance, minimum_gas, chain_name, wallet_address);
-                        mark_wallet_free(&txn, pending_wallet.clone()).await?;
-                        txn.commit().await.map_err(AppError::DbError)?;
-                        return Ok(());
+                        eprintln!("No Mininum gas Gas : {} Minimum Gas :{} Chain:{} Wallet:{} ", gas_balance, minimum_gas, chain_name, wallet_address);
                     }
                 }else{
-                    println!("No token Balance {} Token :{} Chain:{} Wallet:{} || Making Wallet FREE", usdt_token_balance, token_name, chain_name, wallet_address);
+                    println!("No token Balance {} Token :{} Chain:{} Wallet:{} ", usdt_token_balance, token_name, chain_name, wallet_address);
                 }
             }
 
