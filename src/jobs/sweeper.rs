@@ -139,10 +139,10 @@ async fn process_single_request(
             AppError::InternalError(format!("Provider error: {e}"))
         })?;
 
-        // let gas_price = provider.0.get_gas_price().await.map_err(|e|{
-        //             eprintln!("Error Cannot get gas price {:?}: {:?}", wallet_address, e);
-        //             AppError::InternalError(format!("Error Cannot get gas price : {e}"))
-        //     } )?;
+        let gas_price = provider.0.get_gas_price().await.map_err(|e|{
+                    eprintln!("Error Cannot get gas price {:?}: {:?}", wallet_address, e);
+                    AppError::InternalError(format!("Error Cannot get gas price : {e}"))
+            } )?;
 
         for (token_name , token_address) in tokens {
 
@@ -159,25 +159,23 @@ async fn process_single_request(
                         AppError::InternalError(format!("Provider error: {e}"))
                     })?;
 
-                // let call = erc20.transfer(master_wallet_address, U256::from(1));
-
-                // let usdc_transfer_gas = call.from(master_wallet_address)
-                //     .estimate_gas()
-                //     .await.map_err(|e|{
-                //     eprintln!("Error Cannot estimate gas {:?}: {:?}", wallet_address, e);
-                //     AppError::InternalError(format!("Error Cannot estimate gas : {e}"))
-                // } )?;
-
-                // let mut  minimum_gas = U256::from(usdc_transfer_gas) * U256::from(gas_price);
-
-                // +20% buffer
-                // let buffer = minimum_gas / U256::from(5);
-
-                // minimum_gas = minimum_gas + buffer;
-
                 if usdc_token_balance > U256::ZERO {
+                        let call = erc20.transfer(master_wallet_address, U256::from(1));
 
-                    // if gas_balance >= minimum_gas { 
+                        let usdc_transfer_gas = call.from(master_wallet_address)
+                            .estimate_gas()
+                            .await.map_err(|e|{
+                            eprintln!("Error Cannot estimate gas {:?}: {:?}", wallet_address, e);
+                            AppError::InternalError(format!("Error Cannot estimate gas : {e}"))
+                        } )?;
+
+                        let mut  minimum_gas = U256::from(usdc_transfer_gas) * U256::from(gas_price);
+
+                        // +20% buffer
+                        let buffer = minimum_gas / U256::from(5);
+
+                        minimum_gas = minimum_gas + buffer;
+                    if gas_balance >= minimum_gas { 
                             let tx_hash = erc20.transfer(master_wallet_address, usdc_token_balance).send().await.map_err(|e|{
                             eprintln!("Error: Cannot sent {:?}: {:?}", master_wallet_address , e);
                             AppError::InternalError(format!("Provider error: {e}"))
@@ -199,9 +197,9 @@ async fn process_single_request(
                                 &tx_hash.to_string(),
                             ).await?;
                     
-                        // }else{
-                        //     eprintln!("No Mininum gas Gas: {} Minimum Gas :{} Chain:{} Wallet:{} ", gas_balance, minimum_gas, chain_name, wallet_address);
-                        // }
+                        }else{
+                            eprintln!("No Mininum gas Gas: {} Minimum Gas :{} Chain:{} Wallet:{} ", gas_balance, minimum_gas, chain_name, wallet_address);
+                        }
                 }else{
                     println!("No token Balance {} Token :{} Chain:{} Wallet:{} ", usdc_token_balance, token_name, chain_name, wallet_address);
                 }
@@ -214,25 +212,26 @@ async fn process_single_request(
                     AppError::InternalError(format!("Provider error: {e}"))
                 } )?;
 
-                // let call = erc20.transfer(master_wallet_address, U256::from(1));
-
-                // let usdt_transfer_gas = call.from(master_wallet_address)
-                //     .estimate_gas()
-                //     .await.map_err(|e|{
-                //     eprintln!("Error Cannot estimate gas {:?}: {:?}", wallet_address, e);
-                //     AppError::InternalError(format!("Error Cannot estimate gas : {e}"))
-                // } )?;
-
-                // let mut  minimum_gas = U256::from(usdt_transfer_gas) * U256::from(gas_price);
-
-                // +20% buffer
-                // let buffer = minimum_gas / U256::from(5);
-
-                // minimum_gas = minimum_gas + buffer;
 
             if usdt_token_balance > U256::ZERO  {
                 
-                // if gas_balance >= minimum_gas {
+                let call = erc20.transfer(master_wallet_address, U256::from(1));
+
+                    let usdt_transfer_gas = call.from(master_wallet_address)
+                        .estimate_gas()
+                        .await.map_err(|e|{
+                        eprintln!("Error Cannot estimate gas {:?}: {:?}", wallet_address, e);
+                        AppError::InternalError(format!("Error Cannot estimate gas : {e}"))
+                    } )?;
+
+                    let mut  minimum_gas = U256::from(usdt_transfer_gas) * U256::from(gas_price);
+
+                    // +20% buffer
+                    let buffer = minimum_gas / U256::from(5);
+
+                minimum_gas = minimum_gas + buffer;
+
+                if gas_balance >= minimum_gas {
 
                     let tx_hash = erc20.transfer(master_wallet_address, usdt_token_balance).send().await.map_err(|e|{
                                 eprintln!("Error: Cannot sent Wallet:{:?} Gas : {:?} error: {:?}", master_wallet_address , gas_balance, e );
@@ -256,9 +255,9 @@ async fn process_single_request(
                             &tx_hash.to_string(),
                         )
                         .await?;
-                    // }else{
-                    //     eprintln!("No Mininum gas Gas : {} Minimum Gas :{} Chain:{} Wallet:{} ", gas_balance, minimum_gas, chain_name, wallet_address);
-                    // }
+                    }else{
+                        eprintln!("No Mininum gas Gas : {} Minimum Gas :{} Chain:{} Wallet:{} ", gas_balance, minimum_gas, chain_name, wallet_address);
+                    }
                 }else{
                     println!("No token Balance {} Token :{} Chain:{} Wallet:{} ", usdt_token_balance, token_name, chain_name, wallet_address);
                 }
