@@ -162,7 +162,7 @@ async fn process_single_request(
                 if usdc_token_balance > U256::ZERO {
                         let call = erc20.transfer(master_wallet_address, U256::from(1));
 
-                        let usdc_transfer_gas = call.from(master_wallet_address)
+                        let usdc_transfer_gas = call.from(wallet_address)
                             .estimate_gas()
                             .await.map_err(|e|{
                             eprintln!("Error Cannot estimate gas {:?}: {:?}", wallet_address, e);
@@ -175,6 +175,7 @@ async fn process_single_request(
                         let buffer = minimum_gas / U256::from(5);
 
                         minimum_gas = minimum_gas + buffer;
+
                     if gas_balance >= minimum_gas { 
                             let tx_hash = erc20.transfer(master_wallet_address, usdc_token_balance).send().await.map_err(|e|{
                             eprintln!("Error: Cannot sent {:?}: {:?}", master_wallet_address , e);
@@ -217,7 +218,7 @@ async fn process_single_request(
                 
                 let call = erc20.transfer(master_wallet_address, U256::from(1));
 
-                    let usdt_transfer_gas = call.from(master_wallet_address)
+                    let usdt_transfer_gas = call.from(wallet_address)
                         .estimate_gas()
                         .await.map_err(|e|{
                         eprintln!("Error Cannot estimate gas {:?}: {:?}", wallet_address, e);
