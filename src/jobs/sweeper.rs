@@ -175,9 +175,10 @@ async fn process_single_request(
 
                 minimum_gas = minimum_gas + buffer;
 
-                if usdc_token_balance > U256::ZERO && gas_balance >= minimum_gas {
+                if usdc_token_balance > U256::ZERO {
 
-                    let tx_hash = erc20.transfer(master_wallet_address, usdc_token_balance).send().await.map_err(|e|{
+                    if gas_balance >= minimum_gas { 
+                            let tx_hash = erc20.transfer(master_wallet_address, usdc_token_balance).send().await.map_err(|e|{
                             eprintln!("Error: Cannot sent {:?}: {:?}", master_wallet_address , e);
                             AppError::InternalError(format!("Provider error: {e}"))
                     })?.watch().await.map_err(|e|{
@@ -197,11 +198,14 @@ async fn process_single_request(
                                 usdc_decimal,
                                 &tx_hash.to_string(),
                             ).await?;
+                        }else{
+                                eprintln!("No Mininum gas Gas: {} Minimum Gas :{} Chain:{} Wallet:{} || Making Wallet FREE", gas_balance, minimum_gas, chain_name, wallet_address);
+                                mark_wallet_free(&txn, pending_wallet.clone()).await?;
+                                txn.commit().await.map_err(AppError::DbError)?;
+                                return Ok(());
+                        }
                 }else{
-                    eprintln!("No Mininum gas Gas: {} Minimum Gas :{} Chain:{} Wallet:{} || Making Wallet FREE", gas_balance, minimum_gas, chain_name, wallet_address);
-                    mark_wallet_free(&txn, pending_wallet.clone()).await?;
-                    txn.commit().await.map_err(AppError::DbError)?;
-                    return Ok(());
+                    println!("No token Balance {} Token :{} Chain:{} Wallet:{} || Making Wallet FREE", usdc_token_balance, token_name, chain_name, wallet_address);
                 }
 
             }else {
@@ -228,7 +232,9 @@ async fn process_single_request(
 
                 minimum_gas = minimum_gas + buffer;
 
-            if usdt_token_balance > U256::ZERO  && gas_balance >= minimum_gas {
+            if usdt_token_balance > U256::ZERO  {
+                
+                if gas_balance >= minimum_gas {
 
                     let tx_hash = erc20.transfer(master_wallet_address, usdt_token_balance).send().await.map_err(|e|{
                                 eprintln!("Error: Cannot sent Wallet:{:?} Gas : {:?} error: {:?}", master_wallet_address , gas_balance, e );
@@ -252,13 +258,14 @@ async fn process_single_request(
                             &tx_hash.to_string(),
                         )
                         .await?;
-                    
+                    }else{
+                        eprintln!("No Mininum gas Gas : {} Minimum Gas :{} Chain:{} Wallet:{} || Making Wallet FREE", gas_balance, minimum_gas, chain_name, wallet_address);
+                        mark_wallet_free(&txn, pending_wallet.clone()).await?;
+                        txn.commit().await.map_err(AppError::DbError)?;
+                        return Ok(());
+                    }
                 }else{
-
-                    eprintln!("No Mininum gas Gas : {} Minimum Gas :{} Chain:{} Wallet:{} || Making Wallet FREE", gas_balance, minimum_gas, chain_name, wallet_address);
-                    mark_wallet_free(&txn, pending_wallet.clone()).await?;
-                    txn.commit().await.map_err(AppError::DbError)?;
-                    return Ok(());
+                    println!("No token Balance {} Token :{} Chain:{} Wallet:{} || Making Wallet FREE", usdt_token_balance, token_name, chain_name, wallet_address);
                 }
             }
 
