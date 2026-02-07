@@ -139,16 +139,15 @@ async fn process_single_request(
             AppError::InternalError(format!("Provider error: {e}"))
         })?;
 
-        let gas_price = provider.0.get_gas_price().await.map_err(|e|{
-                    eprintln!("Error Cannot get gas price {:?}: {:?}", wallet_address, e);
-                    AppError::InternalError(format!("Error Cannot get gas price : {e}"))
-            } )?;
-
         for (token_name , token_address) in tokens {
 
             let erc20 = ERC20::new(*token_address, &provider.0);
             
             let gas_balance  = provider.0.get_balance(wallet_address).await.map_err(|e| AppError::InternalError(format!("Cannot fetch native balance: {e}")))?;
+            let gas_price = provider.0.get_gas_price().await.map_err(|e|{
+                    eprintln!("Error Cannot get gas price {:?}: {:?}", wallet_address, e);
+                    AppError::InternalError(format!("Error Cannot get gas price : {e}"))
+            } )?;
 
             if token_name ==  &"USDC"  {
 
@@ -160,7 +159,8 @@ async fn process_single_request(
                     })?;
 
                 if usdc_token_balance > U256::ZERO {
-                        let call = erc20.transfer(master_wallet_address, U256::from(1));
+
+                        let call = erc20.transfer(master_wallet_address, usdc_token_balance);
 
                         let usdc_transfer_gas = call.from(wallet_address)
                             .estimate_gas()
@@ -171,10 +171,7 @@ async fn process_single_request(
 
                         let mut  minimum_gas = U256::from(usdc_transfer_gas) * U256::from(gas_price);
 
-                        // +20% buffer
-                        let buffer = minimum_gas / U256::from(5);
-
-                        minimum_gas = minimum_gas + buffer;
+                        minimum_gas = minimum_gas * U256::from(2);
 
                     if gas_balance >= minimum_gas { 
                             let tx_hash = erc20.transfer(master_wallet_address, usdc_token_balance).send().await.map_err(|e|{
@@ -216,7 +213,7 @@ async fn process_single_request(
 
             if usdt_token_balance > U256::ZERO  {
                 
-                let call = erc20.transfer(master_wallet_address, U256::from(1));
+                let call = erc20.transfer(master_wallet_address, usdt_token_balance);
 
                     let usdt_transfer_gas = call.from(wallet_address)
                         .estimate_gas()
@@ -227,10 +224,7 @@ async fn process_single_request(
 
                     let mut  minimum_gas = U256::from(usdt_transfer_gas) * U256::from(gas_price);
 
-                    // +20% buffer
-                    let buffer = minimum_gas / U256::from(5);
-
-                minimum_gas = minimum_gas + buffer;
+                    minimum_gas =  minimum_gas * U256::from(2);
 
                 if gas_balance >= minimum_gas {
 
