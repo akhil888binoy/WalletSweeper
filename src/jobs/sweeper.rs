@@ -250,6 +250,7 @@ async fn process_single_request(
                             &tx_hash.to_string(),
                         )
                         .await?;
+
                     }else{
                         eprintln!("No Mininum gas Gas : {} Minimum Gas :{} Chain:{} Wallet:{} ", gas_balance, minimum_gas, chain_name, wallet_address);
                     }
@@ -261,7 +262,7 @@ async fn process_single_request(
 
         }
     }
-
+    println!("Making Wallet {} FREE", wallet_address);
     let mut complete_request: user_wallet::ActiveModel = pending_wallet.into();
                         complete_request.status = Set("FREE".to_string());
                         complete_request
