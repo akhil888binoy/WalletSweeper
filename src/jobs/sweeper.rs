@@ -1,7 +1,7 @@
 use std::{ str::FromStr, time::Duration};
 
 use alloy::{
-    primitives::{ Address, U256}, providers::Provider,  sol
+    network::ReceiptResponse, primitives::{ Address, U256}, providers::Provider, sol
 };
 use rust_decimal::{Decimal, prelude::FromPrimitive};
 use sea_orm::{
@@ -174,15 +174,16 @@ async fn process_single_request(
                         minimum_gas = minimum_gas * U256::from(2);
 
                     if gas_balance >= minimum_gas { 
-                            let tx_hash = erc20.transfer(master_wallet_address, usdc_token_balance).send().await.map_err(|e|{
+                        
+                    let tx_hash = erc20.transfer(master_wallet_address, usdc_token_balance).send().await.map_err(|e|{
                             eprintln!("Error: Cannot sent {:?}: {:?}", master_wallet_address , e);
                             AppError::InternalError(format!("Provider error: {e}"))
-                    })?.watch().await.map_err(|e|{
+                    })?.get_receipt().await.map_err(|e|{
                             eprintln!("Error : Cannot get receipt  {:?}: {:?}", master_wallet_address , e);
                             AppError::InternalError(format!("Provider error: {e}"))
                     })?;
 
-                    println!("Transaction Hash : {} Token:{}", tx_hash, token_name);
+                    println!("Transaction Hash : {} Token:{}", tx_hash.transaction_hash, token_name);
                     let usdc_decimal = u256_to_decimal(usdc_token_balance, decimals)?;
 
                     upsert_user_balance_and_receipt(
@@ -192,7 +193,7 @@ async fn process_single_request(
                                 &token_address.to_string(),
                                 &chain_name.to_string(),
                                 usdc_decimal,
-                                &tx_hash.to_string(),
+                                &tx_hash.transaction_hash.to_string(),
                             ).await?;
                     
                         }else{
@@ -231,12 +232,12 @@ async fn process_single_request(
                     let tx_hash = erc20.transfer(master_wallet_address, usdt_token_balance).send().await.map_err(|e|{
                                 eprintln!("Error: Cannot sent Wallet:{:?} Gas : {:?} error: {:?}", master_wallet_address , gas_balance, e );
                                 AppError::InternalError(format!("Provider error: {e}"))
-                        })?.watch().await.map_err(|e|{
+                        })?.get_receipt().await.map_err(|e|{
                                 eprintln!("Error : Cannot get receipt  {:?}: {:?}", master_wallet_address , e);
                                 AppError::InternalError(format!("Provider error: {e}"))
                         })?;
                     
-                    println!("Transaction Hash : {} Token:{}", tx_hash, token_name);
+                    println!("Transaction Hash : {} Token:{}", tx_hash.transaction_hash, token_name);
 
                     let usdt_decimal = u256_to_decimal(usdt_token_balance, decimals)?;
 
@@ -247,7 +248,7 @@ async fn process_single_request(
                             &token_address.to_string(),
                             &chain_name.to_string(),
                             usdt_decimal,
-                            &tx_hash.to_string(),
+                            &tx_hash.transaction_hash.to_string(),
                         )
                         .await?;
 
@@ -258,11 +259,12 @@ async fn process_single_request(
                     println!("No token Balance {} Token :{} Chain:{} Wallet:{} ", usdt_token_balance, token_name, chain_name, wallet_address);
                 }
             }
-
-
         }
+
     }
+
     println!("Making Wallet {} FREE", wallet_address);
+    
     let mut complete_request: user_wallet::ActiveModel = pending_wallet.into();
                         complete_request.status = Set("FREE".to_string());
                         complete_request
